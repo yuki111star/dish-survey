@@ -96,12 +96,25 @@
             font-size: 13px;
         }
         .dish-item:last-child { border-bottom: none; }
+        .error-msg {
+            background: #ffe6e6;
+            color: #ff4444;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📊 评分统计</h1>
         <p class="subtitle">实时查看所有评分数据</p>
+        
+        <div id="loading" class="loading">
+            <div>正在加载数据...</div>
+            <button class="refresh" onclick="load()">🔄 刷新</button>
+        </div>
         
         <div id="content" style="display:none;">
             <div class="stats" id="stats"></div>
@@ -122,40 +135,84 @@
     </div>
     
     <script>
-        function load() {
-            const data = JSON.parse(localStorage.getItem('dishSurveyData') || '[]');
-            
-            if (data.length === 0) {
-                document.getElementById('content').style.display = 'none';
-                document.getElementById('noData').style.display = 'block';
-                return;
-            }
-            
-            const sum1 = data.reduce((s, d) => s + d.dish1, 0);
-            const sum2 = data.reduce((s, d) => s + d.dish2, 0);
-            const sum3 = data.reduce((s, d) => s + d.dish3, 0);
-            const avg1 = (sum1 / data.length).toFixed(1);
-            const avg2 = (sum2 / data.length).toFixed(1);
-            const avg3 = (sum3 / data.length).toFixed(1);
-            
-            document.getElementById('stats').innerHTML = `
-                <div class="stat-card"><div class="name">🥗 青豆炒肉</div><div class="score">${avg1}</div><div class="count">${data.length}人评分</div></div>
-                <div class="stat-card"><div class="name">🥬 炒青菜</div><div class="score">${avg2}</div><div class="count">${data.length}人评分</div></div>
-                <div class="stat-card"><div class="name">🍖 红烧肉配油豆腐</div><div class="score">${avg3}</div><div class="count">${data.length}人评分</div></div>
-            `;
-            
-            const max = Math.max(avg1, avg2, avg3, 5);
-            document.getElementById('bars').innerHTML = `
-                <div class="bar-group"><div class="bar-val">${avg1}</div><div class="bar" style="height:${(avg1/max)*130}px"></div><div class="bar-label">🥗<br>菜品 1</div></div>
-                <div class="bar-group"><div class="bar-val">${avg2}</div><div class="bar" style="height:${(avg2/max)*130}px"></div><div class="bar-label">🥬<br>菜品 2</div></div>
-                <div class="bar-group"><div class="bar-val">${avg3}</div><div class="bar" style="height:${(avg3/max)*130}px"></div><div class="bar-label">🍖<br>菜品 3</div></div>
-            `;
-            
-            document.getElementById('dishList').innerHTML = '<div style="font-weight:bold;margin-bottom:10px;">📋 评分记录</div>' + 
-                data.slice().reverse().map(d => `<div class="dish-item">${d.date} - 菜品 1:${d.dish1}分 菜品 2:${d.dish2}分 菜品 3:${d.dish3}分</div>`).join('');
-            
-            document.getElementById('content').style.display = 'block';
+        const FORMSPREE_ID = 'mgopzkdp';
+        
+        async function load() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content').style.display = 'none';
             document.getElementById('noData').style.display = 'none';
+            
+            try {
+                // 从 Formspree API 获取数据
+                const response = await fetch(`https://formspree.io/api/v1/forms/${FORMSPREE_ID}/submissions`, {
+                    headers: {
+                        'Authorization': 'Bearer YOUR_FORMSPREE_TOKEN',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('无法获取数据');
+                }
+                
+                const result = await response.json();
+                const submissions = result.submissions || [];
+                
+                if (submissions.length === 0) {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('noData').style.display = 'block';
+                    return;
+                }
+                
+                // 解析评分数据
+                const data = submissions.map(s => ({
+                    date: s.data['日期'] || '未知',
+                    dish1: parseInt(s.data['菜品 1 评分']) || 0,
+                    dish2: parseInt(s.data['菜品 2 评分']) || 0,
+                    dish3: parseInt(s.data['菜品 3 评分']) || 0
+                })).filter(d => d.dish1 > 0 && d.dish2 > 0 && d.dish3 > 0);
+                
+                if (data.length === 0) {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('noData').style.display = 'block';
+                    return;
+                }
+                
+                const sum1 = data.reduce((s, d) => s + d.dish1, 0);
+                const sum2 = data.reduce((s, d) => s + d.dish2, 0);
+                const sum3 = data.reduce((s, d) => s + d.dish3, 0);
+                const avg1 = (sum1 / data.length).toFixed(1);
+                const avg2 = (sum2 / data.length).toFixed(1);
+                const avg3 = (sum3 / data.length).toFixed(1);
+                
+                document.getElementById('stats').innerHTML = `
+                    <div class="stat-card"><div class="name">🥗 青豆炒肉</div><div class="score">${avg1}</div><div class="count">${data.length}人评分</div></div>
+                    <div class="stat-card"><div class="name">🥬 炒青菜</div><div class="score">${avg2}</div><div class="count">${data.length}人评分</div></div>
+                    <div class="stat-card"><div class="name">🍖 红烧肉配油豆腐</div><div class="score">${avg3}</div><div class="count">${data.length}人评分</div></div>
+                `;
+                
+                const max = Math.max(avg1, avg2, avg3, 5);
+                document.getElementById('bars').innerHTML = `
+                    <div class="bar-group"><div class="bar-val">${avg1}</div><div class="bar" style="height:${(avg1/max)*130}px"></div><div class="bar-label">🥗<br>菜品 1</div></div>
+                    <div class="bar-group"><div class="bar-val">${avg2}</div><div class="bar" style="height:${(avg2/max)*130}px"></div><div class="bar-label">🥬<br>菜品 2</div></div>
+                    <div class="bar-group"><div class="bar-val">${avg3}</div><div class="bar" style="height:${(avg3/max)*130}px"></div><div class="bar-label">🍖<br>菜品 3</div></div>
+                `;
+                
+                document.getElementById('dishList').innerHTML = '<div style="font-weight:bold;margin-bottom:10px;">📋 评分记录</div>' + 
+                    data.slice().reverse().map(d => `<div class="dish-item">${d.date} - 菜品 1:${d.dish1}分 菜品 2:${d.dish2}分 菜品 3:${d.dish3}分</div>`).join('');
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loading').innerHTML = `
+                    <div class="error-msg">
+                        <div>⚠️ 无法从 Formspree 获取数据</div>
+                        <div style="font-size:12px;margin-top:10px;">请在 Formspree 后台查看数据，或联系管理员配置 API Token</div>
+                    </div>
+                    <button class="refresh" onclick="load()">🔄 重试</button>
+                `;
+            }
         }
         
         load();
