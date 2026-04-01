@@ -64,9 +64,7 @@
             border-color: #667eea;
             background: #f0f4ff;
         }
-        .rating-opt input {
-            display: none;
-        }
+        .rating-opt input { display: none; }
         .rating-opt.selected {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-color: #667eea;
@@ -84,30 +82,26 @@
             cursor: pointer;
             margin-top: 20px;
         }
-        .submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-        .submit:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .success {
-            display: none;
-            text-align: center;
-            padding: 40px 20px;
-        }
+        .submit:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        .submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .success { display: none; text-align: center; padding: 40px 20px; }
         .success .check { font-size: 60px; margin-bottom: 15px; }
         .success h2 { color: #4caf50; margin-bottom: 10px; }
         .form { display: block; }
         .form.hidden { display: none; }
-        .loading {
-            text-align: center;
-            padding: 10px;
-            color: #666;
-            display: none;
-        }
+        .loading { text-align: center; padding: 10px; color: #666; display: none; }
         .loading.show { display: block; }
+        .stats-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -116,42 +110,39 @@
         <p class="subtitle">请为今天的菜品打分</p>
         <div class="date" id="dateDisplay">📅 加载中...</div>
         
-        <form class="form" id="form" action="https://formspree.io/f/mgopzkdp" method="POST">
+        <form id="form">
             <div class="dish">
                 <div class="dish-name">🥗 青豆炒肉</div>
                 <div class="rating-row">
-                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="菜品 1 评分" value="1" required><span>😞<br>1 分</span></label>
-                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="菜品 1 评分" value="2"><span>😐<br>2 分</span></label>
-                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="菜品 1 评分" value="3"><span>😊<br>3 分</span></label>
-                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="菜品 1 评分" value="4"><span>🤩<br>4 分</span></label>
-                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="菜品 1 评分" value="5"><span>🏆<br>5 分</span></label>
+                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="r1" value="1" required><span>😞<br>1 分</span></label>
+                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="r1" value="2"><span>😐<br>2 分</span></label>
+                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="r1" value="3"><span>😊<br>3 分</span></label>
+                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="r1" value="4"><span>🤩<br>4 分</span></label>
+                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="r1" value="5"><span>🏆<br>5 分</span></label>
                 </div>
             </div>
             
             <div class="dish">
                 <div class="dish-name">🥬 炒青菜</div>
                 <div class="rating-row">
-                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="菜品 2 评分" value="1" required><span>😞<br>1 分</span></label>
-                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="菜品 2 评分" value="2"><span>😐<br>2 分</span></label>
-                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="菜品 2 评分" value="3"><span>😊<br>3 分</span></label>
-                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="菜品 2 评分" value="4"><span>🤩<br>4 分</span></label>
-                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="菜品 2 评分" value="5"><span>🏆<br>5 分</span></label>
+                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="r2" value="1" required><span>😞<br>1 分</span></label>
+                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="r2" value="2"><span>😐<br>2 分</span></label>
+                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="r2" value="3"><span>😊<br>3 分</span></label>
+                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="r2" value="4"><span>🤩<br>4 分</span></label>
+                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="r2" value="5"><span>🏆<br>5 分</span></label>
                 </div>
             </div>
             
             <div class="dish">
                 <div class="dish-name">🍖 红烧肉配油豆腐</div>
                 <div class="rating-row">
-                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="菜品 3 评分" value="1" required><span>😞<br>1 分</span></label>
-                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="菜品 3 评分" value="2"><span>😐<br>2 分</span></label>
-                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="菜品 3 评分" value="3"><span>😊<br>3 分</span></label>
-                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="菜品 3 评分" value="4"><span>🤩<br>4 分</span></label>
-                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="菜品 3 评分" value="5"><span>🏆<br>5 分</span></label>
+                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="r3" value="1" required><span>😞<br>1 分</span></label>
+                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="r3" value="2"><span>😐<br>2 分</span></label>
+                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="r3" value="3"><span>😊<br>3 分</span></label>
+                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="r3" value="4"><span>🤩<br>4 分</span></label>
+                    <label class="rating-opt" onclick="sel(this)"><input type="radio" name="r3" value="5"><span>🏆<br>5 分</span></label>
                 </div>
             </div>
-            
-            <input type="hidden" name="日期" id="dateField">
-            <input type="hidden" name="时间戳" id="timeField">
             
             <div class="loading" id="loading">正在提交...</div>
             <button type="submit" class="submit">提交评分</button>
@@ -161,13 +152,13 @@
             <div class="check">✅</div>
             <h2>提交成功！</h2>
             <p>感谢你的评分！</p>
+            <a href="stats.html" class="stats-link">📊 查看统计结果</a>
         </div>
     </div>
     
     <script>
+        const REPO = 'yuki111star/dish-survey';
         document.getElementById('dateDisplay').textContent = '📅 ' + new Date().toLocaleDateString('zh-CN', {year:'numeric',month:'long',day:'numeric',weekday:'long'});
-        document.getElementById('dateField').value = new Date().toLocaleDateString('zh-CN');
-        document.getElementById('timeField').value = new Date().toISOString();
         
         function sel(el) {
             const parent = el.parentElement;
@@ -175,32 +166,43 @@
             el.classList.add('selected');
         }
         
-        document.getElementById('form').addEventListener('submit', function(e) {
+        document.getElementById('form').addEventListener('submit', async function(e) {
             e.preventDefault();
+            const r1 = document.querySelector('input[name="r1"]:checked')?.value;
+            const r2 = document.querySelector('input[name="r2"]:checked')?.value;
+            const r3 = document.querySelector('input[name="r3"]:checked')?.value;
+            if (!r1 || !r2 || !r3) { alert('请为每个菜品评分'); return; }
+            
             const btn = document.querySelector('.submit');
             const loading = document.getElementById('loading');
             btn.disabled = true;
             loading.classList.add('show');
             
-            const formData = new FormData(this);
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: { 'Accept': 'application/json' }
-            }).then(response => {
-                if (response.ok) {
-                    document.getElementById('form').classList.add('hidden');
-                    document.getElementById('success').style.display = 'block';
-                } else {
-                    alert('提交失败，请重试');
-                    btn.disabled = false;
-                }
-                loading.classList.remove('show');
-            }).catch(() => {
-                alert('网络错误，请重试');
+            const data = {
+                date: new Date().toLocaleDateString('zh-CN'),
+                timestamp: Date.now(),
+                dish1: parseInt(r1),
+                dish2: parseInt(r2),
+                dish3: parseInt(r3)
+            };
+            
+            try {
+                await fetch(`https://api.github.com/repos/${REPO}/issues`, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/vnd.github.v3+json' },
+                    body: JSON.stringify({
+                        title: `评分 - ${data.date} - ${data.timestamp}`,
+                        body: JSON.stringify(data),
+                        labels: ['rating']
+                    })
+                });
+                document.getElementById('form').classList.add('hidden');
+                document.getElementById('success').style.display = 'block';
+            } catch (err) {
+                alert('提交失败，请重试');
                 btn.disabled = false;
-                loading.classList.remove('show');
-            });
+            }
+            loading.classList.remove('show');
         });
     </script>
 </body>
