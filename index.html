@@ -157,7 +157,6 @@
     </div>
     
     <script>
-        const REPO = 'yuki111star/dish-survey';
         document.getElementById('dateDisplay').textContent = '📅 ' + new Date().toLocaleDateString('zh-CN', {year:'numeric',month:'long',day:'numeric',weekday:'long'});
         
         function sel(el) {
@@ -166,18 +165,23 @@
             el.classList.add('selected');
         }
         
-        document.getElementById('form').addEventListener('submit', async function(e) {
+        document.getElementById('form').addEventListener('submit', function(e) {
             e.preventDefault();
             const r1 = document.querySelector('input[name="r1"]:checked')?.value;
             const r2 = document.querySelector('input[name="r2"]:checked')?.value;
             const r3 = document.querySelector('input[name="r3"]:checked')?.value;
-            if (!r1 || !r2 || !r3) { alert('请为每个菜品评分'); return; }
+            
+            if (!r1 || !r2 || !r3) {
+                alert('请为每个菜品评分');
+                return;
+            }
             
             const btn = document.querySelector('.submit');
             const loading = document.getElementById('loading');
             btn.disabled = true;
             loading.classList.add('show');
             
+            // 保存数据到 localStorage
             const data = {
                 date: new Date().toLocaleDateString('zh-CN'),
                 timestamp: Date.now(),
@@ -186,23 +190,17 @@
                 dish3: parseInt(r3)
             };
             
-            try {
-                await fetch(`https://api.github.com/repos/${REPO}/issues`, {
-                    method: 'POST',
-                    headers: { 'Accept': 'application/vnd.github.v3+json' },
-                    body: JSON.stringify({
-                        title: `评分 - ${data.date} - ${data.timestamp}`,
-                        body: JSON.stringify(data),
-                        labels: ['rating']
-                    })
-                });
+            let allData = JSON.parse(localStorage.getItem('dishSurveyData') || '[]');
+            allData.push(data);
+            localStorage.setItem('dishSurveyData', JSON.stringify(allData));
+            
+            // 显示成功
+            setTimeout(() => {
                 document.getElementById('form').classList.add('hidden');
                 document.getElementById('success').style.display = 'block';
-            } catch (err) {
-                alert('提交失败，请重试');
                 btn.disabled = false;
-            }
-            loading.classList.remove('show');
+                loading.classList.remove('show');
+            }, 500);
         });
     </script>
 </body>
