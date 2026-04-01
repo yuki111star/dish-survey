@@ -103,11 +103,6 @@
         <h1>📊 评分统计</h1>
         <p class="subtitle">实时查看所有评分数据</p>
         
-        <div id="loading" class="loading">
-            <div>正在加载数据...</div>
-            <button class="refresh" onclick="load()">🔄 刷新</button>
-        </div>
-        
         <div id="content" style="display:none;">
             <div class="stats" id="stats"></div>
             <div class="chart">
@@ -127,54 +122,40 @@
     </div>
     
     <script>
-        const REPO = 'yuki111star/dish-survey';
-        
-        async function load() {
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('content').style.display = 'none';
-            document.getElementById('noData').style.display = 'none';
+        function load() {
+            const data = JSON.parse(localStorage.getItem('dishSurveyData') || '[]');
             
-            try {
-                const res = await fetch(`https://api.github.com/repos/${REPO}/issues?labels=rating&state=all&per_page=100`);
-                const issues = await res.json();
-                
-                const data = issues.filter(i => i.body && i.body.includes('"dish1"')).map(i => JSON.parse(i.body));
-                
-                if (data.length === 0) {
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('noData').style.display = 'block';
-                    return;
-                }
-                
-                const sum1 = data.reduce((s, d) => s + d.dish1, 0);
-                const sum2 = data.reduce((s, d) => s + d.dish2, 0);
-                const sum3 = data.reduce((s, d) => s + d.dish3, 0);
-                const avg1 = (sum1 / data.length).toFixed(1);
-                const avg2 = (sum2 / data.length).toFixed(1);
-                const avg3 = (sum3 / data.length).toFixed(1);
-                
-                document.getElementById('stats').innerHTML = `
-                    <div class="stat-card"><div class="name">🥗 青豆炒肉</div><div class="score">${avg1}</div><div class="count">${data.length}人评分</div></div>
-                    <div class="stat-card"><div class="name">🥬 炒青菜</div><div class="score">${avg2}</div><div class="count">${data.length}人评分</div></div>
-                    <div class="stat-card"><div class="name">🍖 红烧肉配油豆腐</div><div class="score">${avg3}</div><div class="count">${data.length}人评分</div></div>
-                `;
-                
-                const max = Math.max(avg1, avg2, avg3, 5);
-                document.getElementById('bars').innerHTML = `
-                    <div class="bar-group"><div class="bar-val">${avg1}</div><div class="bar" style="height:${(avg1/max)*130}px"></div><div class="bar-label">🥗<br>菜品 1</div></div>
-                    <div class="bar-group"><div class="bar-val">${avg2}</div><div class="bar" style="height:${(avg2/max)*130}px"></div><div class="bar-label">🥬<br>菜品 2</div></div>
-                    <div class="bar-group"><div class="bar-val">${avg3}</div><div class="bar" style="height:${(avg3/max)*130}px"></div><div class="bar-label">🍖<br>菜品 3</div></div>
-                `;
-                
-                document.getElementById('dishList').innerHTML = '<div style="font-weight:bold;margin-bottom:10px;">📋 评分记录</div>' + 
-                    data.slice().reverse().map(d => `<div class="dish-item">${d.date} - 菜品 1:${d.dish1}分 菜品 2:${d.dish2}分 菜品 3:${d.dish3}分</div>`).join('');
-                
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-            } catch (e) {
-                console.error(e);
-                document.getElementById('loading').innerHTML = '<div>加载失败</div><button class="refresh" onclick="load()">🔄 重试</button>';
+            if (data.length === 0) {
+                document.getElementById('content').style.display = 'none';
+                document.getElementById('noData').style.display = 'block';
+                return;
             }
+            
+            const sum1 = data.reduce((s, d) => s + d.dish1, 0);
+            const sum2 = data.reduce((s, d) => s + d.dish2, 0);
+            const sum3 = data.reduce((s, d) => s + d.dish3, 0);
+            const avg1 = (sum1 / data.length).toFixed(1);
+            const avg2 = (sum2 / data.length).toFixed(1);
+            const avg3 = (sum3 / data.length).toFixed(1);
+            
+            document.getElementById('stats').innerHTML = `
+                <div class="stat-card"><div class="name">🥗 青豆炒肉</div><div class="score">${avg1}</div><div class="count">${data.length}人评分</div></div>
+                <div class="stat-card"><div class="name">🥬 炒青菜</div><div class="score">${avg2}</div><div class="count">${data.length}人评分</div></div>
+                <div class="stat-card"><div class="name">🍖 红烧肉配油豆腐</div><div class="score">${avg3}</div><div class="count">${data.length}人评分</div></div>
+            `;
+            
+            const max = Math.max(avg1, avg2, avg3, 5);
+            document.getElementById('bars').innerHTML = `
+                <div class="bar-group"><div class="bar-val">${avg1}</div><div class="bar" style="height:${(avg1/max)*130}px"></div><div class="bar-label">🥗<br>菜品 1</div></div>
+                <div class="bar-group"><div class="bar-val">${avg2}</div><div class="bar" style="height:${(avg2/max)*130}px"></div><div class="bar-label">🥬<br>菜品 2</div></div>
+                <div class="bar-group"><div class="bar-val">${avg3}</div><div class="bar" style="height:${(avg3/max)*130}px"></div><div class="bar-label">🍖<br>菜品 3</div></div>
+            `;
+            
+            document.getElementById('dishList').innerHTML = '<div style="font-weight:bold;margin-bottom:10px;">📋 评分记录</div>' + 
+                data.slice().reverse().map(d => `<div class="dish-item">${d.date} - 菜品 1:${d.dish1}分 菜品 2:${d.dish2}分 菜品 3:${d.dish3}分</div>`).join('');
+            
+            document.getElementById('content').style.display = 'block';
+            document.getElementById('noData').style.display = 'none';
         }
         
         load();
