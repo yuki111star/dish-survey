@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理员 - 菜品管理</title>
+    <title>管理员登录</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -11,17 +11,69 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .container {
-            max-width: 600px;
-            margin: 0 auto;
+            max-width: 400px;
+            width: 100%;
             background: white;
             border-radius: 20px;
-            padding: 30px;
+            padding: 40px 30px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         h1 { text-align: center; color: #333; margin-bottom: 10px; font-size: 24px; }
-        .subtitle { text-align: center; color: #666; margin-bottom: 25px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 14px; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .error {
+            background: #ffe6e6;
+            color: #ff4444;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        .error.show { display: block; }
+        .admin-content { display: none; }
+        .admin-content.show { display: block; }
+        .login-content { display: block; }
+        .login-content.hide { display: none; }
         .section {
             background: #f8f9fa;
             padding: 20px;
@@ -48,20 +100,6 @@
             font-size: 14px;
         }
         .dish-input .emoji { font-size: 24px; }
-        .btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
-        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-secondary {
             background: #f0f0f0;
             color: #333;
@@ -73,6 +111,7 @@
             border-radius: 10px;
             margin-bottom: 15px;
             display: none;
+            background: #f0f0f0;
         }
         .preview.show { display: block; }
         .loading {
@@ -108,54 +147,106 @@
             text-align: center;
             cursor: pointer;
             margin-bottom: 15px;
+            background: white;
         }
         .file-input:hover { border-color: #667eea; background: #f0f4ff; }
+        .logout-btn {
+            background: #ff6b6b;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>👨‍🍳 管理员 - 菜品管理</h1>
-        <p class="subtitle">拍照识别菜品，更新问卷</p>
-        
-        <div class="section">
-            <div class="section-title">📸 拍照识别菜品</div>
-            <input type="file" id="photoInput" accept="image/*" capture="camera" style="display:none;" onchange="previewImage(this)">
-            <div class="file-input" onclick="document.getElementById('photoInput').click()">
-                📷 点击拍照或选择图片
+        <!-- 登录页面 -->
+        <div class="login-content" id="loginContent">
+            <h1>🔐 管理员登录</h1>
+            <p class="subtitle">请输入管理员密码</p>
+            
+            <div class="error" id="error">密码错误，请重试</div>
+            
+            <div class="input-group">
+                <label>密码</label>
+                <input type="password" id="password" placeholder="请输入密码" onkeypress="if(event.keyCode===13) login()">
             </div>
-            <img id="preview" class="preview">
-            <button class="btn" id="recognizeBtn" onclick="recognize()" disabled>🔍 识别菜品</button>
-            <div class="loading" id="loading">正在识别...</div>
+            
+            <button class="btn" onclick="login()">登录</button>
+            
+            <a href="index.html" class="back-link">← 返回问卷</a>
         </div>
         
-        <div class="section">
-            <div class="section-title">🍽️ 今日菜品</div>
-            <div class="dish-input">
-                <span class="emoji">🥗</span>
-                <input type="text" id="dish1" placeholder="菜品 1 名称">
+        <!-- 管理页面 -->
+        <div class="admin-content" id="adminContent">
+            <h1>👨‍🍳 菜品管理</h1>
+            <p class="subtitle">拍照识别菜品，更新问卷</p>
+            
+            <div class="section">
+                <div class="section-title">📸 拍照识别菜品</div>
+                <input type="file" id="photoInput" accept="image/*" capture="camera" style="display:none;" onchange="previewImage(this)">
+                <div class="file-input" onclick="document.getElementById('photoInput').click()">
+                    📷 点击拍照或选择图片
+                </div>
+                <img id="preview" class="preview">
+                <button class="btn" id="recognizeBtn" onclick="recognize()" disabled>🔍 识别菜品</button>
+                <div class="loading" id="loading">正在识别...</div>
             </div>
-            <div class="dish-input">
-                <span class="emoji">🥬</span>
-                <input type="text" id="dish2" placeholder="菜品 2 名称">
+            
+            <div class="section">
+                <div class="section-title">🍽️ 今日菜品</div>
+                <div class="dish-input">
+                    <span class="emoji">🥗</span>
+                    <input type="text" id="dish1" placeholder="菜品 1 名称">
+                </div>
+                <div class="dish-input">
+                    <span class="emoji">🥬</span>
+                    <input type="text" id="dish2" placeholder="菜品 2 名称">
+                </div>
+                <div class="dish-input">
+                    <span class="emoji">🍖</span>
+                    <input type="text" id="dish3" placeholder="菜品 3 名称">
+                </div>
+                <button class="btn" onclick="updateSurvey()">✅ 更新问卷</button>
+                <button class="btn logout-btn" onclick="logout()">退出登录</button>
             </div>
-            <div class="dish-input">
-                <span class="emoji">🍖</span>
-                <input type="text" id="dish3" placeholder="菜品 3 名称">
+            
+            <div class="success" id="success">
+                <div style="font-size:50px;margin-bottom:10px;">✅</div>
+                <div>问卷已更新！</div>
             </div>
-            <button class="btn" onclick="updateSurvey()">✅ 更新问卷</button>
+            
+            <a href="index.html" class="back-link">← 返回问卷</a>
         </div>
-        
-        <div class="success" id="success">
-            <div style="font-size:50px;margin-bottom:10px;">✅</div>
-            <div>问卷已更新！</div>
-        </div>
-        
-        <a href="index.html" class="back-link">← 返回问卷</a>
     </div>
     
     <script>
         const REPO = 'yuki111star/dish-survey';
+        const ADMIN_PASSWORD = '123';
         let recognizedDishes = [];
+        
+        // 检查登录状态
+        if (localStorage.getItem('adminLoggedIn') === 'true') {
+            showAdmin();
+        }
+        
+        function login() {
+            const password = document.getElementById('password').value;
+            if (password === ADMIN_PASSWORD) {
+                localStorage.setItem('adminLoggedIn', 'true');
+                showAdmin();
+            } else {
+                document.getElementById('error').classList.add('show');
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('adminLoggedIn');
+            location.reload();
+        }
+        
+        function showAdmin() {
+            document.getElementById('loginContent').classList.add('hide');
+            document.getElementById('adminContent').classList.add('show');
+        }
         
         function previewImage(input) {
             const file = input.files[0];
@@ -181,13 +272,12 @@
             loading.classList.add('show');
             btn.disabled = true;
             
-            // 读取图片为 base64
             const reader = new FileReader();
             reader.onload = async function(e) {
                 const base64 = e.target.result.split(',')[1];
                 
                 try {
-                    // 调用免费图片识别 API
+                    // 调用 AI 识别服务
                     const response = await fetch('https://api.openclaw.ai/recognize', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -198,7 +288,6 @@
                         const result = await response.json();
                         recognizedDishes = result.dishes || [];
                         
-                        // 填充识别结果
                         if (recognizedDishes[0]) document.getElementById('dish1').value = recognizedDishes[0];
                         if (recognizedDishes[1]) document.getElementById('dish2').value = recognizedDishes[1];
                         if (recognizedDishes[2]) document.getElementById('dish3').value = recognizedDishes[2];
@@ -232,8 +321,6 @@
             btn.disabled = true;
             btn.textContent = '正在更新...';
             
-            // 这里需要调用 GitHub API 更新 index.html
-            // 简化版本：提示用户联系 AI 助手更新
             alert('问卷更新功能需要配置 GitHub Token。\n\n请将以下菜品名称发送给 AI 助手：\n\n菜品 1: ' + dish1 + '\n菜品 2: ' + dish2 + '\n菜品 3: ' + dish3 + '\n\nAI 助手会自动更新问卷！');
             
             btn.disabled = false;
