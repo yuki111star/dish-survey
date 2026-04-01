@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>评分统计</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 { text-align: center; color: #333; margin-bottom: 10px; font-size: 26px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        .stat-card .name { font-size: 14px; opacity: 0.9; margin-bottom: 10px; }
+        .stat-card .score { font-size: 42px; font-weight: bold; }
+        .stat-card .count { font-size: 12px; opacity: 0.8; margin-top: 5px; }
+        .chart {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        .chart-title { text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 20px; }
+        .bars {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 180px;
+        }
+        .bar-group { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .bar {
+            width: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px 8px 0 0;
+            transition: height 0.5s;
+        }
+        .bar-val { font-size: 14px; font-weight: bold; color: #333; }
+        .bar-label { font-size: 12px; color: #666; text-align: center; }
+        .back {
+            display: block;
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        .loading, .no-data { text-align: center; padding: 60px 20px; color: #999; }
+        .refresh {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .dish-list {
+            margin-top: 25px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .dish-item {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 13px;
+        }
+        .dish-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 评分统计</h1>
+        <p class="subtitle">实时查看所有评分数据</p>
+        
+        <div id="loading" class="loading">
+            <div>正在加载数据...</div>
+            <button class="refresh" onclick="load()">🔄 刷新</button>
+        </div>
+        
+        <div id="content" style="display:none;">
+            <div class="stats" id="stats"></div>
+            <div class="chart">
+                <div class="chart-title">评分对比</div>
+                <div class="bars" id="bars"></div>
+            </div>
+            <div class="dish-list" id="dishList"></div>
+        </div>
+        
+        <div id="noData" class="no-data" style="display:none;">
+            <div style="font-size:50px;margin-bottom:15px;">📭</div>
+            <div>暂无数据</div>
+            <button class="refresh" onclick="load()">🔄 刷新</button>
+        </div>
+        
+        <a href="index.html" class="back">← 返回问卷</a>
+    </div>
+    
+    <script>
+        const REPO = 'yuki111star/dish-survey';
+        
+        async function load() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('content').style.display = 'none';
+            document.getElementById('noData').style.display = 'none';
+            
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/issues?labels=rating&state=all&per_page=100`);
+                const issues = await res.json();
+                
+                const data = issues.filter(i => i.body && i.body.includes('"dish1"')).map(i => JSON.parse(i.body));
+                
+                if (data.length === 0) {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('noData').style.display = 'block';
+                    return;
+                }
+                
+                const sum1 = data.reduce((s, d) => s + d.dish1, 0);
+                const sum2 = data.reduce((s, d) => s + d.dish2, 0);
+                const sum3 = data.reduce((s, d) => s + d.dish3, 0);
+                const avg1 = (sum1 / data.length).toFixed(1);
+                const avg2 = (sum2 / data.length).toFixed(1);
+                const avg3 = (sum3 / data.length).toFixed(1);
+                
+                document.getElementById('stats').innerHTML = `
+                    <div class="stat-card"><div class="name">🥗 青豆炒肉</div><div class="score">${avg1}</div><div class="count">${data.length}人评分</div></div>
+                    <div class="stat-card"><div class="name">🥬 炒青菜</div><div class="score">${avg2}</div><div class="count">${data.length}人评分</div></div>
+                    <div class="stat-card"><div class="name">🍖 红烧肉配油豆腐</div><div class="score">${avg3}</div><div class="count">${data.length}人评分</div></div>
+                `;
+                
+                const max = Math.max(avg1, avg2, avg3, 5);
+                document.getElementById('bars').innerHTML = `
+                    <div class="bar-group"><div class="bar-val">${avg1}</div><div class="bar" style="height:${(avg1/max)*130}px"></div><div class="bar-label">🥗<br>菜品 1</div></div>
+                    <div class="bar-group"><div class="bar-val">${avg2}</div><div class="bar" style="height:${(avg2/max)*130}px"></div><div class="bar-label">🥬<br>菜品 2</div></div>
+                    <div class="bar-group"><div class="bar-val">${avg3}</div><div class="bar" style="height:${(avg3/max)*130}px"></div><div class="bar-label">🍖<br>菜品 3</div></div>
+                `;
+                
+                document.getElementById('dishList').innerHTML = '<div style="font-weight:bold;margin-bottom:10px;">📋 评分记录</div>' + 
+                    data.slice().reverse().map(d => `<div class="dish-item">${d.date} - 菜品 1:${d.dish1}分 菜品 2:${d.dish2}分 菜品 3:${d.dish3}分</div>`).join('');
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('content').style.display = 'block';
+            } catch (e) {
+                console.error(e);
+                document.getElementById('loading').innerHTML = '<div>加载失败</div><button class="refresh" onclick="load()">🔄 重试</button>';
+            }
+        }
+        
+        load();
+    </script>
+</body>
+</html>
